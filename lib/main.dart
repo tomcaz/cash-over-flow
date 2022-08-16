@@ -1,15 +1,18 @@
 import 'package:daily_cash_flow/widgets/balance_widget.dart';
 import 'package:daily_cash_flow/widgets/label_widget.dart';
+import 'package:daily_cash_flow/widgets/money_widget.dart';
+import 'package:daily_cash_flow/widgets/transaction_widget.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
   final MaterialColor primary = Colors.deepPurple;
   final Color secondary = Colors.white;
+  final Color error = Colors.red.shade400;
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +26,13 @@ class MyApp extends StatelessWidget {
           appBarTheme:
               AppBarTheme(actionsIconTheme: IconThemeData(color: primary)),
           textTheme: TextTheme(
-              labelMedium: const TextStyle(color: Colors.black54),
-              titleMedium: TextStyle(fontSize: 15, color: primary.shade700)),
+              headline2: TextStyle(color: primary, fontSize: 15),
+              headline3: TextStyle(color: error, fontSize: 15),
+              headline4: const TextStyle(color: Colors.black26, fontSize: 10),
+              headline5: const TextStyle(color: Colors.black54, fontSize: 14),
+              headline6: TextStyle(fontSize: 15, color: primary.shade700)),
           colorScheme: ColorScheme.fromSwatch(primarySwatch: primary)
-              .copyWith(secondary: secondary, error: Colors.red.shade400)),
+              .copyWith(secondary: secondary, error: error)),
       home: const MyHomePage(title: 'Cash Overflow'),
     );
   }
@@ -50,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(
             widget.title,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.headline6,
           ),
           actions: [
             Padding(
@@ -64,27 +70,16 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Column(
           children: <Widget>[
             const Balance(),
-            const LabelWidget(label: "Last month"),
+            const LabelWidget(label: "Last month", style: Size.medium),
             _buildOB(3500.00, 2000.00),
+            const LabelWidget(label: "Transactions", style: Size.medium),
+            Expanded(
+                child: TransactionWidget(
+              type: Type.all,
+            ))
           ],
         ),
-        bottomNavigationBar: Theme(
-          data: Theme.of(context).copyWith(canvasColor: Colors.deepPurple),
-          child: BottomNavigationBar(
-            items: <BottomNavigationBarItem>[
-              _buildNavIcon(Icons.dashboard, "Dashboard", _selectedIndex == 0),
-              _buildNavIcon(Icons.input, "Income", _selectedIndex == 1),
-              _buildNavIcon(Icons.output_sharp, "Spend", _selectedIndex == 2),
-              _buildNavIcon(
-                  Icons.monitor_heart_outlined, "Charts", _selectedIndex == 3),
-            ],
-            showUnselectedLabels: false,
-            currentIndex: _selectedIndex,
-            selectedItemColor:
-                Theme.of(context).colorScheme.secondary.withAlpha(255),
-            onTap: _onItemTapped,
-          ),
-        ));
+        bottomNavigationBar: _buildBottomNav());
   }
 
   BottomNavigationBarItem _buildNavIcon(
@@ -110,25 +105,60 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildIncomeOutgoing(double cash, bool isInbound) {
-    Color color = isInbound
+  Widget _buildIncomeOutgoing(double cash, bool isIncome) {
+    Color color = isIncome
         ? Theme.of(context).primaryColor
         : Theme.of(context).colorScheme.error;
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0), color: Colors.black12),
-          child: Expanded(
-            child: Icon(
-              isInbound ? Icons.input : Icons.output,
-              color: color,
+    return Expanded(
+        flex: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Container(
+            height: 130,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                color: Colors.black.withAlpha(8)),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  alignment: Alignment.centerLeft,
+                  child: Icon(
+                    isIncome ? Icons.input : Icons.output,
+                    color: color,
+                  ),
+                ),
+                LabelWidget(
+                    label: isIncome ? "Income" : "Expenses", style: Size.small),
+                const SizedBox(height: 15),
+                MoneyWidget(
+                  amount: cash,
+                  isIncome: isIncome,
+                )
+              ],
             ),
           ),
-        ),
-      )
-    ]);
+        ));
+  }
+
+  Theme _buildBottomNav() {
+    return Theme(
+      data: Theme.of(context).copyWith(canvasColor: Colors.deepPurple),
+      child: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          _buildNavIcon(Icons.dashboard, "Dashboard", _selectedIndex == 0),
+          _buildNavIcon(Icons.input, "Income", _selectedIndex == 1),
+          _buildNavIcon(Icons.output_sharp, "Expenses", _selectedIndex == 2),
+          _buildNavIcon(
+              Icons.monitor_heart_outlined, "Charts", _selectedIndex == 3),
+        ],
+        showUnselectedLabels: false,
+        currentIndex: _selectedIndex,
+        selectedItemColor:
+            Theme.of(context).colorScheme.secondary.withAlpha(255),
+        onTap: _onItemTapped,
+      ),
+    );
   }
 
   void _onItemTapped(int index) {

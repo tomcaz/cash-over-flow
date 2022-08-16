@@ -1,3 +1,4 @@
+import 'package:daily_cash_flow/util/money_util.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -39,7 +40,7 @@ class Balance extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "\$ $bal",
+                  "\$ ${MoneyUtril.format(bal)}",
                   style: TextStyle(
                       color: Theme.of(context).colorScheme.secondary,
                       fontSize: 20),
